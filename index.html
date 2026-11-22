@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Daily Puzzle Dashboard</title>
+    <style>
+        :root {
+            --bg: #f4f5f7;
+            --card: #fff;
+            --text: #15171a;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --green: #dcfce7;
+            --greenBorder: #22c55e;
+            --greenText: #166534;
+            --dark: #111827
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Segoe UI, Inter, Arial, sans-serif
+        }
+
+        header {
+            background: var(--dark);
+            color: #fff;
+            padding: 28px 30px
+        }
+
+        header h1 {
+            margin: 0 0 7px;
+            font-size: 30px
+        }
+
+        header p {
+            margin: 0;
+            color: #cbd5e1
+        }
+
+        main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 24px
+        }
+
+        .top {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px
+        }
+
+        .search {
+            flex: 1;
+            min-width: 250px;
+            padding: 13px 15px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            font-size: 15px
+        }
+
+        .progress {
+            background: white;
+            border: 1px solid var(--line);
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-weight: 600
+        }
+
+        .section {
+            margin: 30px 0 38px
+        }
+
+        .section h2 {
+            font-size: 22px;
+            margin: 0 0 5px
+        }
+
+        .section p {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 0 0 15px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+            gap: 13px
+        }
+
+        .card {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 17px;
+            min-height: 155px;
+            transition: .15s;
+            box-shadow: 0 1px 2px #00000008
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px #0000000d
+        }
+
+        .card.done {
+            background: var(--green);
+            border-color: var(--greenBorder)
+        }
+
+        .card.done .name {
+            color: var(--greenText)
+        }
+
+        .name {
+            font-size: 17px;
+            font-weight: 750;
+            padding-right: 34px
+        }
+
+        .desc {
+            font-size: 13px;
+            color: #555d68;
+            line-height: 1.4;
+            margin-top: 7px
+        }
+
+        .badge {
+            display: inline-block;
+            margin-top: 11px;
+            background: #f0f1f3;
+            border-radius: 6px;
+            padding: 4px 7px;
+            font-size: 10px;
+            font-weight: 700
+        }
+
+        .card.done .badge {
+            background: #bbf7d0;
+            color: var(--greenText)
+        }
+
+        .open {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 13px;
+            text-decoration: none;
+            color: inherit
+        }
+
+        .doneBtn {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--line);
+            background: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 2
+        }
+
+        .card.done .doneBtn {
+            background: #22c55e;
+            color: white;
+            border-color: #22c55e
+        }
+
+        .reset {
+            border: 0;
+            background: transparent;
+            color: #6b7280;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 12px
+        }
+
+        #empty {
+            display: none;
+            text-align: center;
+            padding: 50px;
+            color: var(--muted)
+        }
+
+        footer {
+            max-width: 1200px;
+            margin: auto;
+            padding: 0 24px 35px;
+            color: var(--muted);
+            font-size: 12px
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🧩 My Daily Puzzle Dashboard</h1>
+        <p>Open a puzzle → solve it → hit ✓. Your completed games turn green.</p>
+    </header>
+    <main>
+        <div class="top">
+            <input class="search" id="search" placeholder="Search puzzles...">
+            <div class="progress" id="progress">0 / 0 solved today</div>
+            <button class="reset" id="reset">Reset today's checklist</button>
+        </div>
+        <div id="content"></div>
+        <div id="empty">No puzzle found.</div>
+    </main>
+    <footer>Checklist progress is saved locally in this browser and automatically starts fresh on a new calendar day.
+    </footer>
+
+    <script>
+        const puzzles = [
+            /* DAILY */
+            {name: "Wordle", url: "https://www.nytimes.com/games/wordle/index.html", cat: "daily", desc: "The classic 5-letter daily word game."},
+            {name: "Worldle", url: "https://worldle.teuteuf.fr/", cat: "daily", desc: "Guess the country from its shape."},
+            {name: "Poople", url: "https://poople.io/", cat: "daily", desc: "Turn a 4-letter word into POOP."},
+            {name: "Minute Cryptic", url: "https://www.minutecryptic.com/", cat: "daily", desc: "A quick daily cryptic clue."},
+            {name: "Travle", url: "https://travle.earth/", cat: "daily", desc: "Travel from one country to another through neighbours."},
+            {name: "Globle", url: "https://globle-game.com/", cat: "daily", desc: "Find the mystery country using distance clues."},
+            {name: "Spelling Bee", url: "https://www.nytimes.com/puzzles/spelling-bee", cat: "daily", desc: "Make words from seven letters."},
+            {name: "Elementle", url: "https://elementlegame.com/", cat: "daily", desc: "A daily puzzle built around the periodic table."},
+            {name: "Quordle", url: "https://www.quordle.com/", cat: "daily", desc: "Solve four Wordle-style words at once."},
+            {name: "Linxicon", url: "https://linxicon.com/", cat: "daily", desc: "Connect two random words through meaning. Daily + practice."},
+            {name: "Pydle.net", url: "https://pydle.net/", cat: "daily", desc: "Daily puzzle from Pydle."},
+            {name: "Contexto", url: "https://contexto.me/", cat: "daily", desc: "Find the secret word through semantic similarity. Unlimited mode also available."},
+            {name: "4×3 — Hank Green", url: "https://www.hankgreen.com/fourbythree/", cat: "daily", desc: "Hank Green's daily 4×3 puzzle."},
+            {name: "Strands", url: "https://www.nytimes.com/games/strands", cat: "daily", desc: "Find themed words hidden in the grid."},
+            {name: "Connections", url: "https://www.nytimes.com/games/connections", cat: "daily", desc: "Group 16 words into four connected categories."},
+            {name: "Krillion", url: "https://krillion.io/", cat: "daily", desc: "The daily dive. Unlimited practice is also available."},
+            {name: "FoxiMax 5", url: "https://foximax.com/", cat: "daily", desc: "FoxiMax 5 daily game. Training mode available."},
+            {name: "FoxiMax 6", url: "https://foximax.com/6.html", cat: "daily", desc: "FoxiMax 6 daily game. Training mode available."},
+            {name: "FoxiMax 7", url: "https://foximax.com/7.html", cat: "daily", desc: "FoxiMax 7 daily game. Training mode available."},
+            {name: "Get Even", url: "https://foximax.com/ge.html", cat: "daily", desc: "Find the single even number in the grid."},
+            {name: "Waffle", url: "https://wafflegame.net/", cat: "daily", desc: "Rearrange letters into six words."},
+            {name: "Hardword", url: "https://hardword.co/", cat: "daily", desc: "Find the hidden word in eight tries."},
+            {name: "Clue by Sam", url: "https://cluesbysam.com/", cat: "daily", desc: "Deduce who is innocent and who is criminal."},
+            {name: "NYT Mini Crossword", url: "https://www.nytimes.com/crosswords/game/mini", cat: "daily", desc: "A quick 5×5 daily crossword."},
+            {name: "Letter Boxed", url: "https://www.nytimes.com/puzzles/letter-boxed", cat: "daily", desc: "Chain words using letters around the box."},
+            {name: "Tiles", url: "https://www.nytimes.com/puzzles/tiles", cat: "daily", desc: "Match tiles and clear the board."},
+            {name: "Pips", url: "https://www.nytimes.com/games/pips", cat: "daily", desc: "Place dominoes to satisfy each region's rule."},
+            {name: "Nerdle", url: "https://nerdlegame.com/", cat: "daily", desc: "Wordle with maths equations."},
+            {name: "Tradle", url: "https://games.oec.world/en/tradle/", cat: "daily", desc: "Guess the country from its export treemap."},
+            {name: "Framed", url: "https://framed.wtf/", cat: "daily", desc: "Guess the movie from six still frames."},
+            {name: "Semantle", url: "https://semantle.com/", cat: "daily", desc: "Find the secret word by meaning similarity."},
+            {name: "Squaredle", url: "https://squaredle.app/", cat: "daily", desc: "Find all the words hidden in a letter grid."},
+            {name: "Redactle", url: "https://redactle.net/", cat: "daily", desc: "Work out a redacted Wikipedia article."},
+            {name: "Bandle", url: "https://bandle.app/", cat: "daily", desc: "Guess the song as instruments are layered in."},
+            {name: "TimeGuessr", url: "https://timeguessr.com/", cat: "daily", desc: "Guess the year and place of a photo."},
+
+            /* UNLIMITED */
+            {name: "KenKen", url: "https://www.kenkenpuzzle.com/", cat: "unlimited", desc: "Math + logic grids. Unlimited puzzles available."},
+            {name: "MathMaze", url: "https://mathmaze.com/", cat: "unlimited", desc: "Math/logic maze practice."},
+            {name: "Poople Unlimited", url: "https://poople.io/", cat: "unlimited", desc: "Extra Poople practice after today's daily."},
+            {name: "Contexto Unlimited", url: "https://contexto.me/", cat: "unlimited", desc: "Keep playing semantic word puzzles after the daily."},
+            {name: "Krillion Unlimited", url: "https://krillion.io/", cat: "unlimited", desc: "Unlimited practice mode."},
+            {name: "FoxiMax Training", url: "https://foximax.com/", cat: "unlimited", desc: "Random FoxiMax training games."},
+            {name: "Linxicon Practice", url: "https://linxicon.com/", cat: "unlimited", desc: "Practice as much as you like after the daily pair."},
+            {name: "Sudoku", url: "https://sudoku.com/", cat: "unlimited", desc: "Classic number-placement puzzles at any difficulty."},
+            {name: "2048", url: "https://play2048.co/", cat: "unlimited", desc: "Slide and merge tiles to reach 2048."},
+            {name: "Minesweeper", url: "https://minesweeper.online/", cat: "unlimited", desc: "Clear the board without hitting a mine."},
+            {name: "Lichess Puzzles", url: "https://lichess.org/training", cat: "unlimited", desc: "Endless chess tactics puzzles."},
+            {name: "Simon Tatham's Puzzles", url: "https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/", cat: "unlimited", desc: "A collection of 40 logic puzzles with endless random games."},
+            {name: "Nonograms", url: "https://www.puzzle-nonograms.com/", cat: "unlimited", desc: "Picture-reveal logic grids."}
+        ];
+
+        const stateKey = "dailyPuzzleDone";
+        const today = new Date().toLocaleDateString("en-CA");
+        let state = JSON.parse(localStorage.getItem(stateKey) || "{}");
+        if (state.date !== today) {state = {date: today, done: {}}; save();}
+
+        function save() {localStorage.setItem(stateKey, JSON.stringify(state));}
+        function toggle(name) {
+            state.done[name] = !state.done[name]; save(); render();
+        }
+        function render() {
+            const q = document.getElementById("search").value.toLowerCase();
+            const content = document.getElementById("content"); content.innerHTML = "";
+            let total = 0, done = 0;
+            const sections = [
+                ["daily", "🌅 Updated Every Day", "One shared/new puzzle for today. Your ✓ resets automatically tomorrow."],
+                ["unlimited", "♾️ Unlimited Plays", "Play these as many times as you want. ✓ means you've done some today."]
+            ];
+            sections.forEach(([cat, title, sub]) => {
+                const list = puzzles.filter(p => p.cat === cat && (p.name + " " + p.desc).toLowerCase().includes(q));
+                if (!list.length) return;
+                const sec = document.createElement("section"); sec.className = "section";
+                sec.innerHTML = `<h2>${title}</h2><p>${sub}</p>`;
+                const grid = document.createElement("div"); grid.className = "grid";
+                list.forEach(p => {
+                    total++; if (state.done[p.name]) done++;
+                    const card = document.createElement("div"); card.className = "card" + (state.done[p.name] ? " done" : "");
+                    card.innerHTML = `<button class="doneBtn" title="Mark solved today">${state.done[p.name] ? "✓" : "○"}</button>
+   <div class="name">${p.name}</div><div class="desc">${p.desc}</div>
+   <a class="open" href="${p.url}" target="_blank" rel="noopener"><span class="badge">OPEN PUZZLE ↗</span></a>`;
+                    card.querySelector(".doneBtn").onclick = () => toggle(p.name);
+                    grid.appendChild(card);
+                });
+                sec.appendChild(grid); content.appendChild(sec);
+            });
+            document.getElementById("progress").textContent = `${done} / ${total} solved today`;
+            document.getElementById("empty").style.display = total ? "none" : "block";
+        }
+        document.getElementById("search").addEventListener("input", render);
+        document.getElementById("reset").onclick = () => {if (confirm("Reset all solved marks for today?")) {state.done = {}; save(); render();} };
+        render();
+    </script>
+</body>
+
+</html>
